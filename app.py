@@ -18,27 +18,24 @@ st.set_page_config(
 st.title("🚀 X Client Insights Agent")
 st.caption("Real-time brand + competitor analysis powered by Grok + X search")
 
-# ====================== API KEY ======================
+# ====================== CONNECT TO GROK USING SECRETS ======================
 if "xai_client" not in st.session_state:
-    api_key = os.getenv("XAI_API_KEY")
+    try:
+        # First try Streamlit Secrets (for deployed app)
+        api_key = st.secrets["XAI_API_KEY"]
+    except:
+        # Fallback to environment variable (for local testing)
+        api_key = os.getenv("XAI_API_KEY")
 
     if not api_key:
-        api_key = st.text_input(
-            "🔑 Enter your xAI API Key",
-            type="password",
-            help="Get it from https://console.x.ai"
-        )
+        st.error("❌ xAI API Key not found. Please add it in Streamlit Secrets.")
+        st.stop()
 
-    if api_key:
-        try:
-            st.session_state.xai_client = Client(api_key=api_key.strip())
-            st.success("✅ Connected to Grok!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"❌ Failed to connect: {e}")
-            st.stop()
-    else:
-        st.info("👆 Please enter your xAI API key above.")
+    try:
+        st.session_state.xai_client = Client(api_key=api_key.strip())
+        st.success("✅ Connected to Grok!")
+    except Exception as e:
+        st.error(f"❌ Failed to connect to Grok: {e}")
         st.stop()
 
 client = st.session_state.xai_client
